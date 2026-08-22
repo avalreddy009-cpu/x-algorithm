@@ -77,6 +77,17 @@ pub fn reciprocal_boost_multiplier(candidate: &PostCandidate, boost: f64) -> f64
     }
 }
 
+/// Empirical-Bayes shrink of a predicted probability toward a prior.
+/// When impression count n is 0, leave p unchanged (cold posts and unit tests).
+pub fn empirical_bayes_shrink(p: Option<f64>, n: f64, prior: f64, n0: f64) -> Option<f64> {
+    let p = p?;
+    let p = p.clamp(0.0, 1.0);
+    if n0 <= 0.0 || n <= 0.0 {
+        return Some(p);
+    }
+    Some((n * p + n0 * prior.clamp(0.0, 1.0)) / (n + n0))
+}
+
 pub fn candidate_multiplier(query: &ScoredPostsQuery, candidate: &PostCandidate) -> f64 {
     let mut m = 1.0;
 
@@ -279,5 +290,15 @@ mod tests {
         assert!((m[0] - 1.0).abs() < 1e-12);
         let expected = 0.75 * 0.5 + 0.25;
         assert!((m[1] - expected).abs() < 1e-12);
+    }
+
+    #[test]
+    fn shrinkage_is_noop_without_impressions() {
+        assert_eq!(
+            empirical_bayes_shrink(Some(0.8), 0.0, 0.05, 25.0),
+            Some(0.8)
+        );
+        let shrunk = empirical_bayes_shrink(Some(0.8), 10.0, 0.05, 25.0).unwrap();
+        assert!(shrunk < 0.8 && shrunk > 0.05);
     }
 }

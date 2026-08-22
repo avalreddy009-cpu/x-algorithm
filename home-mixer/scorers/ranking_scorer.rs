@@ -464,6 +464,17 @@ impl RankingScorer {
         candidate: &PostCandidate,
     ) -> (f64, f64) {
         let scores: &PhoenixScores = &candidate.phoenix_scores;
+        let shrink_on = query.params.get(EnableProbabilityShrinkage);
+        let n_impr = candidate.view_count.unwrap_or(0) as f64;
+        let n0 = query.params.get(ShrinkagePseudoCount);
+        let like_prior = query.params.get(ShrinkageLikePrior);
+        let shrink = |p: Option<f64>, prior: f64| {
+            if shrink_on {
+                value_adjustments::empirical_bayes_shrink(p, n_impr, prior, n0)
+            } else {
+                p
+            }
+        };
 
         let vqv_weight = crate::util::candidates_util::vqv_weight(
             query,
@@ -498,26 +509,36 @@ impl RankingScorer {
             0.0
         };
 
+        let report_prior = (like_prior * 0.02).clamp(0.0001, 0.01);
         let terms = [
-            Self::apply(scores.favorite_score, weights.favorite),
-            Self::apply(scores.reply_score, weights.reply_weight_for(candidate)),
-            Self::apply(scores.retweet_score, weights.retweet),
-            Self::apply(scores.photo_expand_score, weights.photo_expand),
-            Self::apply(scores.video_open_score, weights.video_open),
-            Self::apply(scores.click_score, weights.click),
-            Self::apply(scores.open_link_score, weights.open_link),
-            Self::apply(scores.profile_click_score, weights.profile_click),
-            Self::apply(scores.vqv_score, vqv_weight),
-            Self::apply(scores.share_score, weights.share),
-            Self::apply(scores.share_via_dm_score, weights.share_via_dm),
+            Self::apply(shrink(scores.favorite_score, like_prior), weights.favorite),
             Self::apply(
-                scores.share_via_copy_link_score,
+                shrink(scores.reply_score, like_prior),
+                weights.reply_weight_for(candidate),
+            ),
+            Self::apply(shrink(scores.retweet_score, like_prior), weights.retweet),
+            Self::apply(shrink(scores.photo_expand_score, like_prior), weights.photo_expand),
+            Self::apply(shrink(scores.video_open_score, like_prior), weights.video_open),
+            Self::apply(shrink(scores.click_score, like_prior), weights.click),
+            Self::apply(shrink(scores.open_link_score, like_prior), weights.open_link),
+            Self::apply(
+                shrink(scores.profile_click_score, like_prior),
+                weights.profile_click,
+            ),
+            Self::apply(shrink(scores.vqv_score, like_prior), vqv_weight),
+            Self::apply(shrink(scores.share_score, like_prior), weights.share),
+            Self::apply(shrink(scores.share_via_dm_score, like_prior), weights.share_via_dm),
+            Self::apply(
+                shrink(scores.share_via_copy_link_score, like_prior),
                 weights.share_via_copy_link,
             ),
-            Self::apply(scores.dwell_score, weights.dwell_weight_for(candidate)),
-            Self::apply(scores.quote_score, weights.quote),
-            Self::apply(scores.quoted_click_score, weights.quoted_click),
-            Self::apply(scores.quoted_vqv_score, quoted_vqv_weight),
+            Self::apply(
+                shrink(scores.dwell_score, like_prior),
+                weights.dwell_weight_for(candidate),
+            ),
+            Self::apply(shrink(scores.quote_score, like_prior), weights.quote),
+            Self::apply(shrink(scores.quoted_click_score, like_prior), weights.quoted_click),
+            Self::apply(shrink(scores.quoted_vqv_score, like_prior), quoted_vqv_weight),
             dwell_time_term,
             Self::apply(
                 weights.low_fav_penalized_click_dwell(scores),
@@ -527,12 +548,24 @@ impl RankingScorer {
                 scores.active_secs_5m_residual_norm,
                 weights.cont_active_secs_5m_residual_norm,
             ),
-            Self::apply(scores.follow_author_score, weights.follow_author),
-            Self::apply(scores.not_interested_score, weights.not_interested),
-            Self::apply(scores.block_author_score, weights.block_author),
-            Self::apply(scores.mute_author_score, weights.mute_author),
-            Self::apply(scores.report_score, weights.report),
-            Self::apply(scores.not_dwelled_score, weights.not_dwelled),
+            Self::apply(
+                shrink(scores.follow_author_score, like_prior),
+                weights.follow_author,
+            ),
+            Self::apply(
+                shrink(scores.not_interested_score, report_prior),
+                weights.not_interested,
+            ),
+            Self::apply(
+                shrink(scores.block_author_score, report_prior),
+                weights.block_author,
+            ),
+            Self::apply(
+                shrink(scores.mute_author_score, report_prior),
+                weights.mute_author,
+            ),
+            Self::apply(shrink(scores.report_score, report_prior), weights.report),
+            Self::apply(shrink(scores.not_dwelled_score, like_prior), weights.not_dwelled),
             if weights.enable_multiplicative_post_unexplored {
                 0.0
             } else {

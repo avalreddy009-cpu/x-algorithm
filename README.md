@@ -15,6 +15,7 @@ This repository contains the core code that determines which posts a viewer sees
 - [Feature list (easy English)](docs/FEATURES.md)
 - [Design review: new signals and architecture](docs/DESIGN_REVIEW.md)
 - [Durable habits (ethical For You mechanics)](docs/HABITS.md)
+- [Changes by Mr Reddy](docs/MR_REDDY.md)
 - [How It Works](#how-it-works)
   - [Scoring and Ranking](#scoring-and-ranking)
   - [Filtering](#filtering)

@@ -372,6 +372,48 @@ param!(
     "rust_home_mixer_enable_score_explain",
     true
 );
+param!(
+    EnableMmrRerank,
+    bool,
+    "rust_home_mixer_enable_mmr_rerank",
+    true
+);
+param!(
+    MmrLambda,
+    f64,
+    "rust_home_mixer_mmr_lambda",
+    0.7
+);
+param!(
+    EnableInNetworkQuota,
+    bool,
+    "rust_home_mixer_enable_in_network_quota",
+    true
+);
+param!(
+    InNetworkQuotaFraction,
+    f64,
+    "rust_home_mixer_in_network_quota_fraction",
+    0.5
+);
+param!(
+    EnableProbabilityShrinkage,
+    bool,
+    "rust_home_mixer_enable_probability_shrinkage",
+    true
+);
+param!(
+    ShrinkagePseudoCount,
+    f64,
+    "rust_home_mixer_shrinkage_pseudo_count",
+    25.0
+);
+param!(
+    ShrinkageLikePrior,
+    f64,
+    "rust_home_mixer_shrinkage_like_prior",
+    0.05
+);
 
 param!(
     EnableMpnScoring,

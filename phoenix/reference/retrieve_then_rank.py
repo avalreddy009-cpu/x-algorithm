@@ -152,13 +152,26 @@ def main(argv: list[str] | None = None) -> int:
         dists = k_reply.distributionSets[0].candidateDistributions
         fav_idx = recsys_pb2.ActionName.Value("SERVER_TWEET_FAV")
         rows = []
+        authors = []
         for c, dist in zip(retrieved, dists):
             logits = list(dist.logits)
             p_fav = (
                 1.0 / (1.0 + np.exp(-logits[fav_idx])) if fav_idx < len(logits) else float("nan")
             )
             rows.append((c.candidate.tweetId, p_fav))
-        rows.sort(key=lambda r: -r[1])
+            authors.append(int(c.candidate.authorId))
+        scores = np.array([r[1] if r[1] == r[1] else -1e9 for r in rows], dtype=np.float64)
+        n = len(rows)
+        sim = np.eye(n, dtype=np.float64)
+        for i in range(n):
+            for j in range(i + 1, n):
+                s = 1.0 if authors[i] == authors[j] and authors[i] != 0 else 0.0
+                sim[i, j] = sim[j, i] = s
+        sys.path.insert(0, str(HERE.parent))
+        from xrex.data.recsys.mmr import mmr_order
+
+        order = mmr_order(scores, sim, k=min(args.topk, n), lam=0.7)
+        rows = [rows[i] for i in order]
 
         handle = user_handle.get(uid, f"user_{uid}")
         print(f"-- {handle}  (history={len(sess['hist_idx'])}, retrieved={len(retrieved)})")

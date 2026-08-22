@@ -200,14 +200,22 @@ These are **not in the repo today** as first-class For You controls. They would 
 
 If you only add a few, start here:
 
-1. **Durable less-like-this** (author + topic)  
-2. **Language lock** for people who follow mixed-language spam  
-3. **Recency boost** so news is not buried by old viral posts  
-4. **Near-duplicate media collapse** so the same video is not the whole page  
-5. **Why this post** debug line (top score parts)  
-6. **Friends-first preset** (Thunder up, OON discount down, bidirectional reply up)
+The following are **implemented in this fork** (Home Mixer params + Phoenix training helpers):
 
-Those six use pieces that already exist: sources, weights, filters, language hydration, CLIP embeddings, and scoring math.
+- Friends-first OON discount (`EnableFriendsFirstForYou`, default on, factor 0.55)
+- Recency boost, quality-at-equal-impressions tax, reply-farm gate, reciprocal conversation boost, SID diversity
+- Optional language lock (`EnableLanguageLock`, default off)
+- `score_explain` on ranked posts; CLI `phoenix/reference/score_explainer.py`
+- Phoenix `ethical_log1p_impressions` on the nano ranking config; `xrex.data.recsys.ethical_weights`
+
+1. **Durable less-like-this** (author + topic) — still a follow-up (needs a persisted negative bag)
+2. **Language lock** — implemented; turn on the param
+3. **Recency boost** — implemented
+4. **Near-duplicate SID collapse** — implemented as score decay
+5. **Why this post** — `score_explain`
+6. **Friends-first preset** — implemented
+
+Those items sit on existing sources, weights, language hydration, and semantic IDs.
 
 ---
 

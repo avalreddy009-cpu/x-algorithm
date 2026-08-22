@@ -256,6 +256,123 @@ param!(
     0.75
 );
 
+// Fork experiments documented in docs/HABITS.md and docs/DESIGN_REVIEW.md.
+// Recency / QEI / reply-farm default on; multipliers are 1.0 when signals are missing.
+param!(
+    EnableFriendsFirstForYou,
+    bool,
+    "rust_home_mixer_enable_friends_first_for_you",
+    true
+);
+param!(
+    FriendsFirstOonWeightFactor,
+    f64,
+    "rust_home_mixer_friends_first_oon_weight_factor",
+    0.55
+);
+param!(
+    EnableRecencyBoost,
+    bool,
+    "rust_home_mixer_enable_recency_boost",
+    true
+);
+param!(
+    RecencyBoostGamma,
+    f64,
+    "rust_home_mixer_recency_boost_gamma",
+    0.2
+);
+param!(
+    RecencyBoostHalfLifeSecs,
+    u64,
+    "rust_home_mixer_recency_boost_half_life_secs",
+    43200
+);
+param!(
+    EnableQualityAtEqualImpressions,
+    bool,
+    "rust_home_mixer_enable_quality_at_equal_impressions",
+    true
+);
+param!(
+    QeiGamma,
+    f64,
+    "rust_home_mixer_qei_gamma",
+    0.1
+);
+param!(
+    QeiStartAfterImpressions,
+    f64,
+    "rust_home_mixer_qei_start_after_impressions",
+    1000.0
+);
+param!(
+    EnableReplyFarmGate,
+    bool,
+    "rust_home_mixer_enable_reply_farm_gate",
+    true
+);
+param!(
+    ReplyFarmFactor,
+    f64,
+    "rust_home_mixer_reply_farm_factor",
+    0.5
+);
+param!(
+    ReplyFarmMinReplies,
+    i64,
+    "rust_home_mixer_reply_farm_min_replies",
+    20
+);
+param!(
+    ReplyFarmReplyOverFavRatio,
+    f64,
+    "rust_home_mixer_reply_farm_reply_over_fav_ratio",
+    8.0
+);
+param!(
+    EnableReciprocalConversationBoost,
+    bool,
+    "rust_home_mixer_enable_reciprocal_conversation_boost",
+    true
+);
+param!(
+    ReciprocalConversationBoost,
+    f64,
+    "rust_home_mixer_reciprocal_conversation_boost",
+    0.15
+);
+param!(
+    EnableSidDiversity,
+    bool,
+    "rust_home_mixer_enable_sid_diversity",
+    true
+);
+param!(
+    SidDiversityDecay,
+    f64,
+    "rust_home_mixer_sid_diversity_decay",
+    0.5
+);
+param!(
+    SidDiversityFloor,
+    f64,
+    "rust_home_mixer_sid_diversity_floor",
+    0.25
+);
+param!(
+    EnableLanguageLock,
+    bool,
+    "rust_home_mixer_enable_language_lock",
+    false
+);
+param!(
+    EnableScoreExplain,
+    bool,
+    "rust_home_mixer_enable_score_explain",
+    true
+);
+
 param!(
     EnableMpnScoring,
     bool,

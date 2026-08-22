@@ -12,6 +12,7 @@ pub mod following_viewer_muted_keyword_filter;
 pub mod ineligible_subscription_filter;
 pub mod invalid_conversation_module_filter;
 pub mod inventory_holdout_filter;
+pub mod language_lock_filter;
 pub mod new_user_min_engagement_filter;
 pub mod oon_nsfw_simclusters_filter;
 pub mod oon_retweet_reply_filter;

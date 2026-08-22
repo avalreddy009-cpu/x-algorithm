@@ -503,6 +503,7 @@ class RecsysAggregatedModelConfig(Config):
     log_q_num_bins: int = 100_000_000
 
     log_q_correction: bool = False
+    ethical_log1p_impressions: bool = False
     history_seq_len: int = 1024
     candidate_seq_len: int = 128
 
@@ -2920,6 +2921,12 @@ class RecsysAggregatedModel(hk.Module):
                 1.0,
                 1.0 / tweet_counts,
             )
+            if self.config.ethical_log1p_impressions:
+                logq_weights = jnp.where(
+                    tweet_counts == 0.0,
+                    1.0,
+                    1.0 / (1.0 + jnp.log1p(tweet_counts)),
+                )
             raw_weights = logq_weights if raw_weights is None else raw_weights * logq_weights
 
         if self.config.use_seqpack:

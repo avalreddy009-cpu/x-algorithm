@@ -21,6 +21,8 @@ pub struct PostCandidate {
     pub last_scored_at_ms: Option<u64>,
     pub weighted_score: Option<f64>,
     pub score: Option<f64>,
+    #[serde(default)]
+    pub score_explain: Option<String>,
     pub slate_context: Option<SlateContext>,
     #[serde(default)]
     pub served_slate_context: Option<SlateContext>,

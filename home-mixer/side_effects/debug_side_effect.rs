@@ -26,7 +26,14 @@ impl SideEffect<ScoredPostsQuery, PostCandidate> for DebugSideEffect {
         if params::TRACE_USER_IDS.contains(&input.query.user_id) {
             let posts: Vec<String> = candidates
                 .iter()
-                .map(|c| format!("post={} author={}", c.tweet_id, c.author_id))
+                .map(|c| {
+                    let explain = c
+                        .score_explain
+                        .as_deref()
+                        .map(|e| format!(" explain={e}"))
+                        .unwrap_or_default();
+                    format!("post={} author={}{explain}", c.tweet_id, c.author_id)
+                })
                 .collect();
             info!(
                 "debug_side_effect: viewer={} [{}]",

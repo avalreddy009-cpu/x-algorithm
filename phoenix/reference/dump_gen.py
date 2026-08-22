@@ -14,6 +14,7 @@ import numpy as np
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(HERE.parent))
 
 from world import (
     ACTION_NAMES,
@@ -212,6 +213,16 @@ def _write_batch_file(path: Path, world: World, cols: dict[str, np.ndarray], mm:
         return pa.FixedSizeListArray.from_arrays(inner, arr3d.shape[1])
 
     n = len(cols["user_id"])
+    pad = cols["padding"].astype(bool)
+    views = cols["view_count"].astype(np.float64)
+    denom = np.maximum(pad.sum(axis=1), 1)
+    mean_views = np.where(pad, views, 0.0).sum(axis=1) / denom
+    try:
+        from xrex.data.recsys.ethical_weights import impression_log1p_weight
+
+        sample_weight = impression_log1p_weight(mean_views)
+    except ImportError:
+        sample_weight = (1.0 / (1.0 + np.log1p(mean_views))).astype(np.float32)
     users = cols["users"]
     zeros_i64 = np.zeros((n, SEQ_LEN), dtype=np.int64)
     named: dict[str, pa.Array] = {
@@ -248,7 +259,7 @@ def _write_batch_file(path: Path, world: World, cols: dict[str, np.ndarray], mm:
         "continuousActionValuesSeqSeq": fsl2(cols["continuous"], pa.float32()),
         "paddingMask": fsl(cols["padding"], pa.bool_()),
         "newEventMask": fsl(cols["new_event"], pa.bool_()),
-        "sampleWeight": pa.array(np.ones(n, dtype=np.float32), type=pa.float32()),
+        "sampleWeight": pa.array(sample_weight, type=pa.float32()),
         "kafka_timestamp_ms": pa.array(cols["serve_ms"], type=pa.int64()),
         "kafka_offset": pa.array(cols["offset"], type=pa.int64()),
     }

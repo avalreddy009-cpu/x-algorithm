@@ -430,6 +430,7 @@ MODEL_CFGS = {
             "emb_table_width": 128,
             "multimodal_embedding_type": None,
             "log_q_num_bins": 100_000,
+            "ethical_log1p_impressions": True,
             "compute_post_unexplored_label": False,
         },
         user_vocab_size=100_000,
@@ -636,6 +637,7 @@ for config in configs:
             post_age_bucket_strategy=mparams.get("post_age_bucket_strategy", "linear"),
             post_age_num_buckets=mparams.get("post_age_num_buckets", 80),
             log_q_correction=mparams["log_q_correction"],
+            ethical_log1p_impressions=mparams.get("ethical_log1p_impressions", False),
             log_q_num_bins=mparams.get("log_q_num_bins", 100_000_000),
             mask_candidate_positive_when_negative_action_present=mparams.get(
                 "mask_candidate_positive_when_negative_action_present", False

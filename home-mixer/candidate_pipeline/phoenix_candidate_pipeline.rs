@@ -44,6 +44,7 @@ use crate::filters::dedup_conversation_filter::DedupConversationFilter;
 use crate::filters::drop_duplicates_filter::DropDuplicatesFilter;
 use crate::filters::ineligible_subscription_filter::IneligibleSubscriptionFilter;
 use crate::filters::inventory_holdout_filter::InventoryHoldoutFilter;
+use crate::filters::language_lock_filter::LanguageLockFilter;
 use crate::filters::new_user_min_engagement_filter::NewUserMinEngagementFilter;
 use crate::filters::oon_nsfw_simclusters_filter::OONNsfwSimclustersFilter;
 use crate::filters::oon_retweet_reply_filter::OONRetweetReplyFilter;
@@ -369,6 +370,7 @@ impl PhoenixCandidatePipeline {
             Box::new(Brazil2026ElectionFilter),
             Box::new(VideoFilter),
             Box::new(TopicIdsFilter),
+            Box::new(LanguageLockFilter),
             Box::new(NewUserMinEngagementFilter),
             Box::new(InventoryHoldoutFilter),
         ];

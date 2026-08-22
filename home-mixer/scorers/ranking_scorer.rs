@@ -2,6 +2,7 @@ use crate::models::candidate::{MpnParts, PhoenixScores, PostCandidate, SlateCont
 use crate::models::query::ScoredPostsQuery;
 use crate::params::*;
 use crate::scorers::author_cold_start::AuthorColdStart;
+use crate::scorers::value_adjustments;
 use crate::scorers::value_model_gate::GateModel;
 use rustc_hash::FxHashMap;
 use std::cmp::Ordering;
@@ -551,6 +552,24 @@ impl RankingScorer {
         (pos, neg)
     }
 
+    fn explain_score(
+        query: &ScoredPostsQuery,
+        candidate: &PostCandidate,
+        score: f64,
+        oon_factor: f64,
+    ) -> Option<String> {
+        if !query.params.get(EnableScoreExplain) {
+            return None;
+        }
+        Some(value_adjustments::format_explain(
+            &[
+                ("oon", oon_factor),
+                ("adj", value_adjustments::candidate_multiplier(query, candidate)),
+            ],
+            score,
+        ))
+    }
+
     pub(crate) fn offset_score(combined_score: f64, w: &ScoringWeights) -> f64 {
         if w.total_sum == 0.0 {
             combined_score.max(0.0)
@@ -745,7 +764,11 @@ impl RankingScorer {
             return query.params.get(TopicOonWeightFactor);
         }
 
-        let oon_weight_factor = query.params.get(OonWeightFactor);
+        let oon_weight_factor = if query.params.get(EnableFriendsFirstForYou) {
+            query.params.get(FriendsFirstOonWeightFactor)
+        } else {
+            query.params.get(OonWeightFactor)
+        };
 
         let new_user_age_threshold = Duration::from_secs(query.params.get(NewUserAgeThresholdSecs));
 
@@ -860,6 +883,8 @@ impl Scorer<ScoredPostsQuery, PostCandidate> for RankingScorer {
                 })
                 .collect();
 
+            let mpn_scores =
+                value_adjustments::apply_to_scores(query, candidates, &mpn_scores);
             let final_scores = self.author_cold_start.apply(query, candidates, &mpn_scores);
 
             return weighted_scores
@@ -870,6 +895,16 @@ impl Scorer<ScoredPostsQuery, PostCandidate> for RankingScorer {
                     Ok(PostCandidate {
                         weighted_score: Some(weighted),
                         score: Some(score),
+                        score_explain: Self::explain_score(
+                            query,
+                            &candidates[i],
+                            score,
+                            if oon_applies(&candidates[i]) {
+                                effective_oon
+                            } else {
+                                1.0
+                            },
+                        ),
                         slate_context: persisted_contexts.as_ref().map(|contexts| contexts[i]),
                         mpn_parts: Some(MpnParts {
                             pos: weighted_parts[i].0,
@@ -920,6 +955,7 @@ impl Scorer<ScoredPostsQuery, PostCandidate> for RankingScorer {
                 }
             })
             .collect();
+        let final_scores = value_adjustments::apply_to_scores(query, candidates, &final_scores);
 
         weighted_scores
             .iter()
@@ -929,6 +965,16 @@ impl Scorer<ScoredPostsQuery, PostCandidate> for RankingScorer {
                 Ok(PostCandidate {
                     weighted_score: Some(weighted),
                     score: Some(score),
+                    score_explain: Self::explain_score(
+                        query,
+                        &candidates[i],
+                        score,
+                        if oon_applies(&candidates[i]) {
+                            effective_oon
+                        } else {
+                            1.0
+                        },
+                    ),
                     slate_context: persisted_contexts.as_ref().map(|contexts| contexts[i]),
                     ..Default::default()
                 })
@@ -939,6 +985,7 @@ impl Scorer<ScoredPostsQuery, PostCandidate> for RankingScorer {
     fn update(&self, candidate: &mut PostCandidate, scored: PostCandidate) {
         candidate.weighted_score = scored.weighted_score;
         candidate.score = scored.score;
+        candidate.score_explain = scored.score_explain;
         candidate.slate_context = scored.slate_context;
         candidate.mpn_parts = scored.mpn_parts;
     }
@@ -1097,6 +1144,7 @@ mod tests {
         let candidates = vec![candidate(1, Some(true)), candidate(2, Some(false))];
 
         let query = query_with_flags(&[
+            ("rust_home_mixer_enable_friends_first_for_you", "false"),
             ("rust_home_mixer_oon_weight_factor", "0.75"),
             ("rust_home_mixer_value_model_mode", "weighted"),
             ("rust_home_mixer_enable_mpn_scoring", "false"),
@@ -1107,6 +1155,24 @@ mod tests {
         let oon_score = scored[1].as_ref().unwrap().score.unwrap();
 
         assert!((oon_score - in_network_score * 0.75).abs() < 1e-9);
+    }
+
+    #[tokio::test]
+    async fn friends_first_uses_stronger_oon_discount() {
+        let scorer = test_scorer();
+        let candidates = vec![candidate(1, Some(true)), candidate(2, Some(false))];
+
+        let query = query_with_flags(&[
+            ("rust_home_mixer_enable_friends_first_for_you", "true"),
+            ("rust_home_mixer_friends_first_oon_weight_factor", "0.55"),
+            ("rust_home_mixer_value_model_mode", "weighted"),
+            ("rust_home_mixer_enable_mpn_scoring", "false"),
+        ]);
+        let scored = scorer.score(&query, &candidates).await;
+        let in_network_score = scored[0].as_ref().unwrap().score.unwrap();
+        let oon_score = scored[1].as_ref().unwrap().score.unwrap();
+        assert!((oon_score - in_network_score * 0.55).abs() < 1e-9);
+        assert!(scored[1].as_ref().unwrap().score_explain.is_some());
     }
 
     #[test]
@@ -1411,6 +1477,7 @@ mod tests {
                 "rust_home_mixer_enable_oon_rescore_for_in_network_replies_retweets",
                 "true",
             ),
+            ("rust_home_mixer_enable_friends_first_for_you", "false"),
             ("rust_home_mixer_oon_weight_factor", "0.75"),
             ("rust_home_mixer_value_model_mode", "weighted"),
             ("rust_home_mixer_enable_mpn_scoring", "false"),

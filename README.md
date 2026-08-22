@@ -12,6 +12,7 @@ This repository contains the core code that determines which posts a viewer sees
   - [Request Path](#request-path)
   - [Labeling Path](#labeling-path)
 - [Components](#components)
+- [Feature list (easy English)](docs/FEATURES.md)
 - [How It Works](#how-it-works)
   - [Scoring and Ranking](#scoring-and-ranking)
   - [Filtering](#filtering)

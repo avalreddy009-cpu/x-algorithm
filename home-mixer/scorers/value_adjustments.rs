@@ -125,6 +125,15 @@ pub fn candidate_multiplier(query: &ScoredPostsQuery, candidate: &PostCandidate)
         );
     }
 
+    if query.params.get(EnableRareEventBoost) {
+        m *= crate::scorers::rare_events::from_query_params(
+            candidate,
+            query.params.get(RareEventMaxAgeSecs),
+            query.params.get(RareEventMinViews),
+            query.params.get(RareEventBoost),
+        );
+    }
+
     m
 }
 

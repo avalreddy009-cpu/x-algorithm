@@ -414,6 +414,48 @@ param!(
     "rust_home_mixer_shrinkage_like_prior",
     0.05
 );
+param!(
+    EnableHungarianAssignment,
+    bool,
+    "rust_home_mixer_enable_hungarian_assignment",
+    true
+);
+param!(
+    HungarianMaxN,
+    u32,
+    "rust_home_mixer_hungarian_max_n",
+    64
+);
+param!(
+    HungarianPositionDecay,
+    f64,
+    "rust_home_mixer_hungarian_position_decay",
+    0.92
+);
+param!(
+    EnableRareEventBoost,
+    bool,
+    "rust_home_mixer_enable_rare_event_boost",
+    true
+);
+param!(
+    RareEventMaxAgeSecs,
+    u64,
+    "rust_home_mixer_rare_event_max_age_secs",
+    5400
+);
+param!(
+    RareEventMinViews,
+    f64,
+    "rust_home_mixer_rare_event_min_views",
+    80.0
+);
+param!(
+    RareEventBoost,
+    f64,
+    "rust_home_mixer_rare_event_boost",
+    0.35
+);
 
 param!(
     EnableMpnScoring,

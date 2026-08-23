@@ -16,6 +16,8 @@ is now in the code:
 | Recency + QEI + reply-farm + reciprocal | Works as light multipliers | `value_adjustments.rs` |
 | Empirical-Bayes probability shrink | Works when view counts exist; no-op if n=0 | `empirical_bayes_shrink` |
 | MMR slate rerank (1998) | Works; cheap diversity if VMRanker is down | `slate_algorithms.rs`, `mmr.py` |
+| **Hungarian / Kuhn–Munkres assignment** | Works — optimal post→slot matching (friends / rare-event / explore slots) | `hungarian.rs`, `hungarian.py` |
+| **Rare real-event detector** | Works only for fresh original posts with extreme talk-rate; quotes/replies never qualify | `rare_events.rs`, `rare_events.py` |
 | In-network quota in top K | Works as a product floor | `apply_in_network_quota` |
 | Language lock | Works; default off (too sharp) | `language_lock_filter.rs` |
 | Impression log1p training weights | Works; milder than 1/count | `ethical_weights.py` |
@@ -28,7 +30,8 @@ is now in the code:
 - `docs/FEATURES.md`, `docs/DESIGN_REVIEW.md`, `docs/HABITS.md`, this file
 - `home-mixer/scorers/value_adjustments.rs`, `ranking_scorer.rs`, `params/param.rs`
 - `home-mixer/filters/language_lock_filter.rs`
-- `home-mixer/selectors/slate_algorithms.rs`, `top_k_score_selector.rs`
-- `phoenix/xrex/data/recsys/ethical_weights.py`, `mmr.py`
+- `home-mixer/selectors/slate_algorithms.rs`, `hungarian.rs`, `top_k_score_selector.rs`
+- `home-mixer/scorers/rare_events.rs`
+- `phoenix/xrex/data/recsys/ethical_weights.py`, `mmr.py`, `hungarian.py`, `rare_events.py`
 - `phoenix/reference/score_explainer.py`, `dump_gen.py`
 - `phoenix/xrex/models/recsys_model.py`, `xrex/configs/xrecsys.py`

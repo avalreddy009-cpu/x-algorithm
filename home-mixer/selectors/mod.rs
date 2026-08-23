@@ -1,5 +1,6 @@
 mod blender_selector;
 mod following_blender_selector;
+mod hungarian;
 mod passthrough_selector;
 mod slate_algorithms;
 mod top_k_score_selector;

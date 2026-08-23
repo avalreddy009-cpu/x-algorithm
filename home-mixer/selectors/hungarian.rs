@@ -75,7 +75,6 @@ pub fn hungarian_minimize(cost: &[Vec<f64>]) -> Vec<usize> {
 
 /// Maximize profit. Dummy rows/cols should be filled with 0.
 pub fn hungarian_maximize(profit: &[Vec<f64>]) -> Vec<usize> {
-    let n = profit.len();
     let mut max_v = 0.0_f64;
     for row in profit {
         for &x in row {

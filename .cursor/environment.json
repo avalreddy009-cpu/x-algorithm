@@ -1,0 +1,9 @@
+{
+  "name": "X For You Algorithm (Phoenix)",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "."
+  },
+  "user": "root",
+  "install": "./.cursor/scripts/install.sh"
+}
